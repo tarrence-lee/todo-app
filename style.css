@@ -83,15 +83,14 @@ body {
 }
 
 /*
-  DOM 순서: header(1) → date-nav(2) → input-area(3) → filter-bar(4) → todo-list(5)
-  CSS order: header(1) → date-nav(2) → filter-bar(3) → todo-list(4) → input-area(5)
+  DOM 순서: header(1) → date-nav(2) → input-area(3) → todo-list(4)
+  CSS order: header(1) → date-nav(2) → todo-list(3) → input-area(4)
   → 입력창을 하단 고정, 목록은 스크롤 영역
 */
 #header     { order: 1; flex-shrink: 0; }
 #date-nav   { order: 2; flex-shrink: 0; }
-#filter-bar { order: 3; display: none; }   /* 카테고리 필터 바 숨김 */
-#todo-list  { order: 4; flex: 1; }
-#input-area { order: 5; flex-shrink: 0; }
+#todo-list  { order: 3; flex: 1; }
+#input-area { order: 4; flex-shrink: 0; }
 
 /* 섹션 공통 배경 */
 #header,
@@ -451,6 +450,7 @@ body {
 .todo-item.dragging {
   opacity: 0.4;
   transform: scale(1.02);
+  pointer-events: none; /* 터치 드래그 시 elementFromPoint가 아래 항목을 찾을 수 있게 */
 }
 
 .todo-item.drag-over {
@@ -548,7 +548,7 @@ body {
   border-radius: var(--radius-sm);
   cursor: pointer;
   color: var(--color-text-muted);
-  min-height: 36px;
+  min-height: 44px; /* Apple HIG 최소 터치 영역 */
   transition: all 0.15s ease;
 }
 

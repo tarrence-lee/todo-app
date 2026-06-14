@@ -1,0 +1,19 @@
+{
+  "name": "할 일 관리",
+  "short_name": "할일",
+  "description": "개인용 할 일 관리 앱",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f0f2f5",
+  "theme_color": "#4f7cff",
+  "orientation": "portrait-primary",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

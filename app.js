@@ -13,9 +13,10 @@
    - 모든 클릭 처리는 컨테이너 단위 이벤트 위임으로 묶여 있습니다.
 
    주요 동작:
-   - 추가: 텍스트 + 카테고리 + 선택 날짜로 항목 생성
-   - 토글/수정/삭제, 드래그 정렬
-   - 날짜 탐색(◀ ▶ 오늘), 카테고리·상태 필터, 진행률 표시, 다크 모드
+   - 추가: 텍스트 입력(키워드 자동 카테고리 분류) + 선택 날짜로 항목 생성
+   - 토글/수정/삭제, 드래그·터치 정렬
+   - 날짜 탐색(◀ ▶ 오늘), 카테고리별 자동 정렬, 진행률 표시, 다크 모드
+   - 카테고리 뱃지 탭으로 순환 변경 (개인 → 업무 → 공부)
    ========================================================= */
 
 /* =========================================================
@@ -127,6 +128,10 @@ const state = {
 
 /* 드래그 중인 항목 id (정렬용, 드래그가 없을 땐 null) */
 let draggedId = null;
+
+/* 터치 드래그 상태 */
+let touchDragId = null;
+let touchOverId = null;
 
 /* 입력창에서 키워드로 자동 분류된 카테고리 (추가 시 사용) */
 let pendingCategory = DEFAULT_CATEGORY;
@@ -867,5 +872,41 @@ document.addEventListener('DOMContentLoaded', () => {
         .querySelectorAll('.todo-item.dragging, .todo-item.drag-over')
         .forEach((el) => el.classList.remove('dragging', 'drag-over'));
     });
+
+    // 터치 드래그 정렬 (iOS·Android)
+    listEl.addEventListener('touchstart', (e) => {
+      if (!e.target.closest('.drag-handle')) return;
+      const li = e.target.closest('.todo-item');
+      if (!li) return;
+      touchDragId = Number(li.dataset.id);
+      li.classList.add('dragging');
+    }, { passive: true });
+
+    listEl.addEventListener('touchmove', (e) => {
+      if (touchDragId === null) return;
+      e.preventDefault(); // 드래그 중 스크롤 방지
+      const touch = e.touches[0];
+      const below = document.elementFromPoint(touch.clientX, touch.clientY);
+      const li = below?.closest('.todo-item');
+      document.querySelectorAll('.todo-item.drag-over')
+        .forEach((el) => el.classList.remove('drag-over'));
+      if (li && Number(li.dataset.id) !== touchDragId) {
+        touchOverId = Number(li.dataset.id);
+        li.classList.add('drag-over');
+      } else {
+        touchOverId = null;
+      }
+    }, { passive: false });
+
+    const endTouchDrag = () => {
+      if (touchDragId === null) return;
+      if (touchOverId !== null) reorderTodos(touchDragId, touchOverId);
+      document.querySelectorAll('.todo-item.dragging, .todo-item.drag-over')
+        .forEach((el) => el.classList.remove('dragging', 'drag-over'));
+      touchDragId = null;
+      touchOverId = null;
+    };
+    listEl.addEventListener('touchend', endTouchDrag);
+    listEl.addEventListener('touchcancel', endTouchDrag);
   }
 });
