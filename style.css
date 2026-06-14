@@ -1,0 +1,651 @@
+/* =========================================================
+   테마 색상 · 디자인 토큰 (중앙 관리)
+   ========================================================= */
+:root {
+  /* 색상 */
+  --color-bg:           #f4f5f7;
+  --color-surface:      #ffffff;
+  --color-border:       #e2e5ea;
+  --color-text:         #1f2430;
+  --color-text-muted:   #6b7280;
+  --color-primary:      #4f7cff;
+  --color-primary-dark: #3b63d6;
+  --color-danger:       #ef4444;
+
+  /* 카테고리 색상 (중앙 관리) */
+  --cat-개인: #4CAF50; /* 초록 */
+  --cat-업무: #2196F3; /* 파랑 */
+  --cat-공부: #FF9800; /* 주황 */
+
+  /* 간격 */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+
+  /* 모양 */
+  --radius:    10px;
+  --shadow:    0 1px 3px rgba(0, 0, 0, 0.08);
+
+  /* 타이포 */
+  --font-base: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic",
+               sans-serif;
+}
+
+/* 다크 테마 (data-theme="dark" 일 때 색상 변수만 덮어쓴다) */
+:root[data-theme="dark"] {
+  --color-bg:           #1a1d24;
+  --color-surface:      #242833;
+  --color-border:       #353b48;
+  --color-text:         #e6e8ec;
+  --color-text-muted:   #9aa1ad;
+  --color-primary:      #6d93ff;
+  --color-primary-dark: #5577e6;
+  --shadow:             0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* =========================================================
+   기본 리셋
+   ========================================================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-base);
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.5;
+  padding: var(--space-lg) var(--space-md);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+/* =========================================================
+   레이아웃
+   ========================================================= */
+#app {
+  max-width: 680px;
+  margin: 0 auto;
+  display: none; /* 잠금 해제 전에는 숨김 */
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* 잠금 해제 시 앱 노출 + 게이트 숨김 */
+body.unlocked #app {
+  display: flex;
+}
+
+body.unlocked #gate {
+  display: none;
+}
+
+/* =========================================================
+   비밀번호 잠금 화면
+   ========================================================= */
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  background: var(--color-bg);
+}
+
+.gate-box {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.gate-title {
+  font-size: 1.375rem;
+}
+
+.gate-desc {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-sm);
+}
+
+.gate-input {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.gate-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.2);
+}
+
+.gate-submit {
+  width: 100%;
+  padding: var(--space-sm);
+  font-size: 1rem;
+  font-family: inherit;
+  color: #fff;
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.gate-submit:hover {
+  background: var(--color-primary-dark);
+}
+
+.gate-error {
+  font-size: 0.875rem;
+  color: var(--color-danger);
+}
+
+/* 공통 카드 스타일 */
+#header,
+#date-nav,
+#input-area,
+#filter-bar,
+#todo-list {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space-md);
+}
+
+#header {
+  text-align: center;
+}
+
+/* =========================================================
+   헤더 · 진행률
+   ========================================================= */
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-sm);
+}
+
+.app-title {
+  font-size: 1.5rem;
+}
+
+.theme-toggle {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 0.8125rem;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  border-color: var(--color-primary);
+}
+
+.progress-label {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-sm);
+}
+
+/* 메인 진행률 막대 (<progress>) */
+.progress {
+  display: block;
+  width: 100%;
+  height: 10px;
+  border: none;
+  border-radius: 999px;
+  overflow: hidden;
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--color-border); /* 트랙 (Firefox 등) */
+}
+
+/* WebKit/Blink: 트랙 + 값 */
+.progress::-webkit-progress-bar {
+  background: var(--color-border);
+  border-radius: 999px;
+}
+.progress::-webkit-progress-value {
+  background: var(--color-primary);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+/* Firefox: 값 */
+.progress::-moz-progress-bar {
+  background: var(--color-primary);
+  border-radius: 999px;
+}
+
+/* 100% 완료 시 초록색 */
+.progress.complete::-webkit-progress-value { background: #4CAF50; }
+.progress.complete::-moz-progress-bar { background: #4CAF50; }
+
+/* 완료 축하 메시지 */
+.celebrate {
+  margin-top: var(--space-sm);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #4CAF50;
+}
+
+/* 카테고리별 진행률 막대 트랙 (div 기반) */
+.progress-bar {
+  height: 8px;
+  background: var(--color-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+/* 카테고리별 진행률 */
+.cat-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+}
+
+.cat-progress-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* 진행률 영역의 카테고리 뱃지는 고정 폭으로 정렬 */
+.cat-progress .badge {
+  width: 44px;
+  text-align: center;
+  padding: 2px 0;
+  font-size: 0.6875rem;
+}
+
+.cat-progress .progress-bar {
+  flex: 1;
+  height: 6px;
+}
+
+.cat-progress-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.cat-fill-개인 { background: var(--cat-개인); }
+.cat-fill-업무 { background: var(--cat-업무); }
+.cat-fill-공부 { background: var(--cat-공부); }
+
+.cat-progress-num {
+  flex-shrink: 0;
+  width: 36px;
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* =========================================================
+   날짜 탐색
+   ========================================================= */
+#date-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.nav-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  font-size: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.nav-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.date-label {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+}
+
+.today-btn {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 0.8125rem;
+  font-family: inherit;
+  color: var(--color-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.today-btn:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.today-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  background: var(--color-surface);
+  color: var(--color-primary);
+}
+
+/* =========================================================
+   필터 바 (카테고리 그룹 + 상태 그룹)
+   ========================================================= */
+#filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.filter-group {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.filter-btn,
+.status-btn {
+  flex: 1;
+  padding: var(--space-sm);
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.filter-btn:hover,
+.status-btn:hover {
+  border-color: var(--color-primary);
+}
+
+.filter-btn.active,
+.status-btn.active {
+  color: #fff;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* 선택된 카테고리 필터 버튼은 해당 카테고리 색상으로 채움 */
+.filter-btn.cat-개인.active { background: var(--cat-개인); border-color: var(--cat-개인); }
+.filter-btn.cat-업무.active { background: var(--cat-업무); border-color: var(--cat-업무); }
+.filter-btn.cat-공부.active { background: var(--cat-공부); border-color: var(--cat-공부); }
+
+/* =========================================================
+   입력 영역
+   ========================================================= */
+.input-row {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+#todo-input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-sm) var(--space-md);
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+#todo-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* 유효성 오류: 빨간 테두리 */
+#todo-input.invalid {
+  border-color: var(--color-danger);
+}
+
+#category-select {
+  padding: var(--space-sm);
+  font-size: 1rem;
+  font-family: inherit;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+#add-btn {
+  padding: var(--space-sm) var(--space-lg);
+  font-size: 1rem;
+  font-family: inherit;
+  color: #fff;
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+#add-btn:hover {
+  background: var(--color-primary-dark);
+}
+
+.input-error {
+  margin-top: var(--space-sm);
+  color: var(--color-danger);
+  font-size: 0.875rem;
+}
+
+/* =========================================================
+   할 일 목록
+   ========================================================= */
+.todo-ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.todo-item:hover {
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+}
+
+.drag-handle {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  cursor: grab;
+  user-select: none;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+
+.todo-item.dragging {
+  opacity: 0.4;
+}
+
+.todo-item.drag-over {
+  border-color: var(--color-primary);
+  border-style: dashed;
+}
+
+.todo-check {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.badge {
+  flex-shrink: 0;
+  padding: 2px var(--space-sm);
+  font-size: 0.75rem;
+  border-radius: 999px;
+  color: #fff;
+}
+
+/* 카테고리 색상 (뱃지 배경) */
+.badge.cat-개인 { background: var(--cat-개인); }
+.badge.cat-업무 { background: var(--cat-업무); }
+.badge.cat-공부 { background: var(--cat-공부); }
+
+.todo-text {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+/* 완료 항목: 취소선 + 흐림 */
+.todo-item.done .todo-text {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.edit-input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius);
+}
+
+.edit-input:focus {
+  outline: none;
+}
+
+.edit-btn,
+.delete-btn {
+  flex-shrink: 0;
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 0.875rem;
+  font-family: inherit;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+
+.edit-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.delete-btn:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.empty-msg {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: var(--space-md) 0;
+}
+
+/* =========================================================
+   공통 인터랙션 (전환 · 포커스)
+   ========================================================= */
+button,
+input,
+select {
+  transition: background 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* 키보드 포커스 표시 (마우스 클릭 시엔 표시 안 함) */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+.progress:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* 입력창 포커스 시 은은한 강조 링 */
+#todo-input:focus {
+  box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.2);
+}
+
+/* =========================================================
+   반응형 — 모바일 (max-width: 480px)
+   ========================================================= */
+@media (max-width: 480px) {
+  body {
+    padding: var(--space-md) var(--space-sm);
+  }
+
+  /* 입력창과 버튼을 세로 배치 */
+  .input-row {
+    flex-direction: column;
+  }
+
+  #add-btn {
+    width: 100%;
+  }
+
+  /* 날짜 탐색 버튼 터치 영역 확보 */
+  .nav-btn,
+  .today-btn {
+    min-height: 44px;
+  }
+
+  .nav-btn {
+    width: 44px;
+  }
+
+  /* 카테고리 필터: 가로 스크롤 */
+  .filter-group {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .filter-btn,
+  .status-btn {
+    flex: 0 0 auto; /* 줄어들지 않고 가로로 나열 */
+    min-width: 64px;
+    min-height: 44px;
+  }
+}

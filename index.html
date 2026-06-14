@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="개인용 할 일 관리 앱">
+  <meta name="theme-color" content="#2E5A88">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>">
+  <title>할 일 관리</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 비밀번호 잠금 화면 (간이 차단막 · 진짜 보안 아님) -->
+  <div id="gate" class="gate">
+    <form id="gate-form" class="gate-box">
+      <h1 class="gate-title">🔒 잠긴 앱</h1>
+      <p class="gate-desc">비밀번호를 입력하세요.</p>
+      <input
+        type="password"
+        id="gate-input"
+        class="gate-input"
+        placeholder="비밀번호"
+        autocomplete="current-password"
+        aria-label="비밀번호 입력"
+      >
+      <button type="submit" id="gate-submit" class="gate-submit">입장</button>
+      <p id="gate-error" class="gate-error" role="alert" hidden>
+        비밀번호가 올바르지 않습니다.
+      </p>
+    </form>
+  </div>
+
+  <main id="app">
+    <!-- 앱 제목 + 진행률 영역 -->
+    <header id="header"></header>
+
+    <!-- 날짜 탐색 영역 -->
+    <nav id="date-nav"></nav>
+
+    <!-- 입력 폼 영역 -->
+    <section id="input-area">
+      <div class="input-row">
+        <input
+          type="text"
+          id="todo-input"
+          placeholder="할 일을 입력하세요"
+          autocomplete="off"
+          aria-label="할 일 입력"
+          aria-describedby="input-error"
+        >
+        <select id="category-select" aria-label="카테고리 선택">
+          <option value="개인">개인</option>
+          <option value="업무">업무</option>
+          <option value="공부">공부</option>
+        </select>
+        <button type="button" id="add-btn" aria-label="할 일 추가">추가</button>
+      </div>
+      <p id="input-error" class="input-error" role="alert" hidden>내용을 입력해 주세요.</p>
+    </section>
+
+    <!-- 필터 버튼 영역 -->
+    <section id="filter-bar"></section>
+
+    <!-- 할 일 목록 영역 -->
+    <section id="todo-list"></section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
