@@ -10,26 +10,6 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- 비밀번호 잠금 화면 (간이 차단막 · 진짜 보안 아님) -->
-  <div id="gate" class="gate">
-    <form id="gate-form" class="gate-box">
-      <h1 class="gate-title">🔒 잠긴 앱</h1>
-      <p class="gate-desc">비밀번호를 입력하세요.</p>
-      <input
-        type="password"
-        id="gate-input"
-        class="gate-input"
-        placeholder="비밀번호"
-        autocomplete="current-password"
-        aria-label="비밀번호 입력"
-      >
-      <button type="submit" id="gate-submit" class="gate-submit">입장</button>
-      <p id="gate-error" class="gate-error" role="alert" hidden>
-        비밀번호가 올바르지 않습니다.
-      </p>
-    </form>
-  </div>
-
   <main id="app">
     <!-- 앱 제목 + 진행률 영역 -->
     <header id="header"></header>

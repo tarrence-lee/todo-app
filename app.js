@@ -23,15 +23,6 @@
    ========================================================= */
 const STORAGE_KEY = 'todos'; // localStorage 항목 키
 const THEME_KEY = 'theme'; // localStorage 테마 키
-const UNLOCK_KEY = 'unlocked'; // sessionStorage 잠금 해제 플래그 키
-
-/* 접속 비밀번호의 SHA-256 해시 (평문 미노출용).
-   기본 비밀번호: 'ok'
-   변경하려면: 브라우저 콘솔에서 아래를 실행해 새 해시를 구해 교체하세요.
-   crypto.subtle.digest('SHA-256', new TextEncoder().encode('새비번'))
-     .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''))); */
-const PASSWORD_HASH =
-  '2689367b205c16ce32ed4200942b8b8b1e262dfc70d9bc9fbc77c49699a4f1df';
 const DEFAULT_CATEGORY = '개인'; // 기본 카테고리
 const COMPLETE_PERCENT = 100; // 완료(축하) 기준 진행률
 const DATE_PAD = 2; // 날짜 두 자리 패딩 길이
@@ -41,6 +32,26 @@ const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
 /* 카테고리 목록 */
 const CATEGORIES = ['개인', '업무', '공부'];
+
+/* 키워드 → 카테고리 자동 분류 맵 (길고 구체적인 키워드를 앞에 배치) */
+const KEYWORD_CATEGORY_MAP = [
+  {
+    category: '업무',
+    keywords: [
+      '회의', '미팅', '보고서', '발표', '프레젠테이션', '기획', '제안서',
+      '업무', '출장', '거래처', '클라이언트', '이메일', '메일', '계약',
+      '야근', '마감', '프로젝트', '팀', '상사', '부하', '고객', '영업',
+    ],
+  },
+  {
+    category: '공부',
+    keywords: [
+      '공부', '강의', '수업', '강좌', '과제', '시험', '퀴즈', '복습',
+      '예습', '독서', '책', '논문', '자격증', '자격', '학원', '스터디',
+      '강습', '레슨', '튜토리얼', '강의노트', '요약', '암기', '단어',
+    ],
+  },
+];
 
 /* 카테고리 필터 버튼 (value: 'all' | 카테고리명) */
 const CATEGORY_FILTERS = [
@@ -214,6 +225,20 @@ function toggleTodo(id) {
   const todo = state.todos.find((t) => t.id === id);
   if (!todo) return;
   todo.done = !todo.done;
+  saveTodos(state.todos);
+  render();
+}
+
+/**
+ * 해당 id 항목의 카테고리를 CATEGORIES 순서대로 순환시키고 저장·렌더한다.
+ * @param {number} id - 대상 항목 id
+ * @returns {void}
+ */
+function toggleCategory(id) {
+  const todo = state.todos.find((t) => t.id === id);
+  if (!todo) return;
+  const idx = CATEGORIES.indexOf(todo.category);
+  todo.category = CATEGORIES[(idx + 1) % CATEGORIES.length];
   saveTodos(state.todos);
   render();
 }
@@ -558,10 +583,14 @@ function createTodoElement(todo) {
   checkbox.setAttribute('aria-label', `${todo.text} 완료 표시`);
   li.appendChild(checkbox);
 
-  // 카테고리 뱃지
+  // 카테고리 뱃지 (클릭 시 순환 변경)
   const badge = document.createElement('span');
   badge.className = 'badge cat-' + todo.category;
   badge.textContent = todo.category;
+  badge.dataset.action = 'toggle-category';
+  badge.setAttribute('role', 'button');
+  badge.setAttribute('title', '클릭으로 카테고리 변경');
+  badge.setAttribute('aria-label', `카테고리: ${todo.category}. 클릭으로 변경`);
   li.appendChild(badge);
 
   // 텍스트 (긴 텍스트는 CSS word-break 로 자연스럽게 줄바꿈)
@@ -719,93 +748,16 @@ function handleAdd() {
 }
 
 /* =========================================================
-   비밀번호 잠금 (간이 차단막 · 진짜 보안 아님)
-   ========================================================= */
-
-/**
- * 문자열의 SHA-256 해시를 16진수 문자열로 반환한다.
- * @param {string} text - 해싱할 문자열
- * @returns {Promise<string>} 64자리 16진수 해시
- */
-async function sha256Hex(text) {
-  const buf = await crypto.subtle.digest(
-    'SHA-256',
-    new TextEncoder().encode(text)
-  );
-  return [...new Uint8Array(buf)]
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-}
-
-/**
- * 앱 잠금을 해제한다(본문 클래스 부여 + 세션 플래그 저장).
- * @returns {void}
- */
-function unlockApp() {
-  document.body.classList.add('unlocked');
-  try {
-    sessionStorage.setItem(UNLOCK_KEY, '1');
-  } catch (err) {
-    /* 세션 저장 실패는 무시 (해제 자체는 유지) */
-  }
-}
-
-/**
- * 잠금 화면을 초기화한다. 이미 해제된 세션이면 바로 통과시킨다.
- * @returns {void}
- */
-function initGate() {
-  // 같은 세션에서 이미 해제했으면 통과
-  let already = false;
-  try {
-    already = sessionStorage.getItem(UNLOCK_KEY) === '1';
-  } catch (err) {
-    already = false;
-  }
-  if (already) {
-    unlockApp();
-    return;
-  }
-
-  const form = document.getElementById('gate-form');
-  const input = document.getElementById('gate-input');
-  const errorEl = document.getElementById('gate-error');
-  if (!form || !input) {
-    unlockApp(); // 게이트 요소가 없으면 잠그지 않음
-    return;
-  }
-
-  input.focus();
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const hash = await sha256Hex(input.value);
-    if (hash === PASSWORD_HASH) {
-      unlockApp();
-    } else {
-      if (errorEl) errorEl.hidden = false;
-      input.value = '';
-      input.focus();
-    }
-  });
-
-  // 다시 입력하면 오류 문구 숨김
-  input.addEventListener('input', () => {
-    if (errorEl) errorEl.hidden = true;
-  });
-}
-
-/* =========================================================
    초기화 · 이벤트 바인딩
    ========================================================= */
 document.addEventListener('DOMContentLoaded', () => {
-  initGate();
   state.todos = getTodos();
   applyTheme(getTheme());
   render();
 
   const addBtn = document.getElementById('add-btn');
   const input = document.getElementById('todo-input');
+  const categorySelect = document.getElementById('category-select');
   const errorEl = document.getElementById('input-error');
   const listEl = document.getElementById('todo-list');
   const navEl = document.getElementById('date-nav');
@@ -815,15 +767,24 @@ document.addEventListener('DOMContentLoaded', () => {
   // 추가: 버튼 클릭
   if (addBtn) addBtn.addEventListener('click', handleAdd);
 
-  // 추가: Enter 키 + 입력 시 오류 표시 해제
+  // 추가: Enter 키 + 입력 시 오류 표시 해제 + 키워드 자동 카테고리 분류
   if (input) {
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') handleAdd();
     });
     input.addEventListener('input', () => {
-      if (input.value.trim()) {
+      const text = input.value.trim();
+      if (text) {
         input.classList.remove('invalid');
         if (errorEl) errorEl.hidden = true;
+      }
+      // 키워드 매핑 — 먼저 매칭된 카테고리 적용 (없으면 변경 안 함)
+      if (text && categorySelect) {
+        const lower = text.toLowerCase();
+        const matched = KEYWORD_CATEGORY_MAP.find((m) =>
+          m.keywords.some((kw) => lower.includes(kw))
+        );
+        if (matched) categorySelect.value = matched.category;
       }
     });
   }
@@ -863,6 +824,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (e.target.classList.contains('todo-check')) {
         toggleTodo(id);
+      } else if (e.target.dataset.action === 'toggle-category') {
+        toggleCategory(id);
       } else if (e.target.classList.contains('delete-btn')) {
         deleteTodo(id);
       } else if (e.target.classList.contains('edit-btn')) {
