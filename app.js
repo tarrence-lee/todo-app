@@ -132,6 +132,10 @@ let draggedId = null;
 /* 터치 드래그 상태 */
 let touchDragId = null;
 let touchOverId = null;
+let longPressTimer = null;  // 롱프레스 타이머
+let touchStartY = null;     // 롱프레스 취소 판정용 시작 Y 좌표
+
+const LONG_PRESS_MS = 350;  // 드래그 시작까지 대기 시간 (ms)
 
 /* 입력창에서 키워드로 자동 분류된 카테고리 (추가 시 사용) */
 let pendingCategory = DEFAULT_CATEGORY;
@@ -873,18 +877,42 @@ document.addEventListener('DOMContentLoaded', () => {
         .forEach((el) => el.classList.remove('dragging', 'drag-over'));
     });
 
-    // 터치 드래그 정렬 (iOS·Android)
+    // 터치 드래그 정렬 (iOS·Android) — 롱프레스(350ms) 후 드래그 시작
     listEl.addEventListener('touchstart', (e) => {
-      if (!e.target.closest('.drag-handle')) return;
-      const li = e.target.closest('.todo-item');
+      const handle = e.target.closest('.drag-handle');
+      if (!handle) return;
+      const li = handle.closest('.todo-item');
       if (!li) return;
-      touchDragId = Number(li.dataset.id);
-      li.classList.add('dragging');
-    }, { passive: true });
+
+      touchStartY = e.touches[0].clientY;
+      handle.classList.add('pressing');
+
+      // 350ms 후 드래그 모드 진입 (손가락이 거의 안 움직인 경우)
+      longPressTimer = setTimeout(() => {
+        longPressTimer = null;
+        handle.classList.remove('pressing');
+        touchDragId = Number(li.dataset.id);
+        li.classList.add('dragging');
+        if (navigator.vibrate) navigator.vibrate(30); // 진동 피드백 (Android)
+      }, LONG_PRESS_MS);
+    }, { passive: false }); // non-passive: 핸들 터치 시 스크롤 우선권 차단 가능
 
     listEl.addEventListener('touchmove', (e) => {
+      // 롱프레스 대기 중 — 손가락이 6px 이상 이동하면 스크롤 의도로 보고 취소
+      if (longPressTimer !== null) {
+        const dy = Math.abs(e.touches[0].clientY - touchStartY);
+        if (dy > 6) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+          document.querySelectorAll('.drag-handle.pressing')
+            .forEach((el) => el.classList.remove('pressing'));
+        }
+        return;
+      }
+
       if (touchDragId === null) return;
       e.preventDefault(); // 드래그 중 스크롤 방지
+
       const touch = e.touches[0];
       const below = document.elementFromPoint(touch.clientX, touch.clientY);
       const li = below?.closest('.todo-item');
@@ -899,6 +927,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: false });
 
     const endTouchDrag = () => {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+      touchStartY = null;
+      document.querySelectorAll('.drag-handle.pressing')
+        .forEach((el) => el.classList.remove('pressing'));
+
       if (touchDragId === null) return;
       if (touchOverId !== null) reorderTodos(touchDragId, touchOverId);
       document.querySelectorAll('.todo-item.dragging, .todo-item.drag-over')

@@ -468,6 +468,19 @@ body {
   letter-spacing: -2px;
   opacity: 0.35;
   font-size: 1.1rem;
+  /* 모바일 터치 영역 확보 */
+  align-self: stretch;       /* todo-item 전체 높이로 늘려 터치 면적 최대화 */
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  touch-action: none;        /* 브라우저가 이 영역의 터치를 스크롤로 처리하지 않도록 */
+  transition: opacity 0.15s ease;
+}
+
+/* 롱프레스 대기 중 시각 피드백 */
+.drag-handle.pressing {
+  opacity: 0.9;
+  color: var(--color-primary);
 }
 
 .todo-check {
