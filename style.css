@@ -89,14 +89,13 @@ body {
 */
 #header     { order: 1; flex-shrink: 0; }
 #date-nav   { order: 2; flex-shrink: 0; }
-#filter-bar { order: 3; flex-shrink: 0; }
+#filter-bar { order: 3; display: none; }   /* 카테고리 필터 바 숨김 */
 #todo-list  { order: 4; flex: 1; }
 #input-area { order: 5; flex-shrink: 0; }
 
 /* 섹션 공통 배경 */
 #header,
 #date-nav,
-#filter-bar,
 #input-area {
   background: var(--color-surface);
 }
@@ -394,24 +393,6 @@ body {
   box-shadow: 0 0 0 3px rgba(239,68,68,.12);
 }
 
-#category-select {
-  height: 48px;
-  padding: 0 var(--space-sm);
-  font-size: 0.875rem;
-  font-family: inherit;
-  color: var(--color-text);
-  background: var(--color-bg);
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  min-width: 68px;
-  transition: border-color 0.15s ease;
-}
-
-#category-select:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
 
 #add-btn {
   height: 48px;

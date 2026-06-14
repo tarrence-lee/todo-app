@@ -128,6 +128,9 @@ const state = {
 /* 드래그 중인 항목 id (정렬용, 드래그가 없을 땐 null) */
 let draggedId = null;
 
+/* 입력창에서 키워드로 자동 분류된 카테고리 (추가 시 사용) */
+let pendingCategory = DEFAULT_CATEGORY;
+
 /* =========================================================
    localStorage 헬퍼
    ========================================================= */
@@ -680,6 +683,11 @@ function renderList() {
   if (state.statusFilter === '진행중') items = items.filter((t) => !t.done);
   else if (state.statusFilter === '완료') items = items.filter((t) => t.done);
 
+  // 4차: 카테고리 순서로 정렬 (개인 → 업무 → 공부), 같은 카테고리 내 순서 유지
+  items = [...items].sort(
+    (a, b) => CATEGORIES.indexOf(a.category) - CATEGORIES.indexOf(b.category)
+  );
+
   if (items.length === 0) {
     const empty = document.createElement('p');
     empty.className = 'empty-msg';
@@ -708,7 +716,6 @@ function renderList() {
 function render() {
   renderHeader();
   renderDateNav();
-  renderFilterBar();
   renderList();
 }
 
@@ -722,7 +729,6 @@ function render() {
  */
 function handleAdd() {
   const input = document.getElementById('todo-input');
-  const categorySelect = document.getElementById('category-select');
   const errorEl = document.getElementById('input-error');
 
   const text = input.value.trim();
@@ -739,11 +745,11 @@ function handleAdd() {
   input.classList.remove('invalid');
   if (errorEl) errorEl.hidden = true;
 
-  const category = categorySelect ? categorySelect.value : DEFAULT_CATEGORY;
-  addTodo(text, category, state.selectedDate);
+  addTodo(text, pendingCategory, state.selectedDate);
 
-  // 입력창 초기화
+  // 입력창·카테고리 초기화
   input.value = '';
+  pendingCategory = DEFAULT_CATEGORY;
   input.focus();
 }
 
@@ -757,11 +763,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const addBtn = document.getElementById('add-btn');
   const input = document.getElementById('todo-input');
-  const categorySelect = document.getElementById('category-select');
   const errorEl = document.getElementById('input-error');
   const listEl = document.getElementById('todo-list');
   const navEl = document.getElementById('date-nav');
-  const filterEl = document.getElementById('filter-bar');
   const headerEl = document.getElementById('header');
 
   // 추가: 버튼 클릭
@@ -778,13 +782,15 @@ document.addEventListener('DOMContentLoaded', () => {
         input.classList.remove('invalid');
         if (errorEl) errorEl.hidden = true;
       }
-      // 키워드 매핑 — 먼저 매칭된 카테고리 적용 (없으면 변경 안 함)
-      if (text && categorySelect) {
+      // 키워드 자동 분류 — 매칭되면 pendingCategory 업데이트, 없으면 유지
+      if (text) {
         const lower = text.toLowerCase();
         const matched = KEYWORD_CATEGORY_MAP.find((m) =>
           m.keywords.some((kw) => lower.includes(kw))
         );
-        if (matched) categorySelect.value = matched.category;
+        if (matched) pendingCategory = matched.category;
+      } else {
+        pendingCategory = DEFAULT_CATEGORY;
       }
     });
   }
@@ -803,15 +809,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (action === 'prev') changeDate(-1);
       else if (action === 'next') changeDate(1);
       else if (action === 'today') goToday();
-    });
-  }
-
-  // 필터: 이벤트 위임 (카테고리 + 상태)
-  if (filterEl) {
-    filterEl.addEventListener('click', (e) => {
-      if (e.target.dataset.filter) setActiveCategory(e.target.dataset.filter);
-      else if (e.target.dataset.status)
-        setStatusFilter(e.target.dataset.status);
     });
   }
 
